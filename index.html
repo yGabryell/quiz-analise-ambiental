@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Quiz de Análise Ambiental • Revisão Erica</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #3b82f6;
+      --accent: #0ea5e9;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --error: #ef4444;
+      --error-light: #fee2e2;
+      --warning: #f59e0b;
+      --radius: 16px;
+      --shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 12px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding-bottom: 40px;
+    }
+
+    /* Header & Progress */
+    .header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: white;
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::after {
+      content: "";
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 110px;
+      height: 110px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .header-title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .badge-user {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .header-sub {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-bottom: 14px;
+    }
+
+    /* Progress bar */
+    .progress-track {
+      background: rgba(255, 255, 255, 0.25);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      background: #38bdf8;
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+
+    /* Filter / Aula Selector Bar */
+    .filters-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 2px 14px 2px;
+      scrollbar-width: none;
+    }
+    .filters-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      white-space: nowrap;
+      background: var(--card-bg);
+      border: 1px solid #e2e8f0;
+      padding: 8px 14px;
+      border-radius: 24px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3);
+    }
+
+    /* Question Card */
+    .question-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      border: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .tag-aula {
+      background: #eff6ff;
+      color: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .tag-tema {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .question-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.45;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    /* Options */
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-btn {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      width: 100%;
+    }
+
+    .option-btn:active:not(:disabled) {
+      transform: scale(0.985);
+    }
+
+    .option-letter {
+      width: 26px;
+      height: 26px;
+      min-width: 26px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .option-text {
+      flex: 1;
+      padding-top: 1px;
+    }
+
+    /* Option States */
+    .option-btn.selected-correct {
+      background-color: var(--success-light);
+      border-color: var(--success);
+      color: #065f46;
+      font-weight: 600;
+    }
+    .option-btn.selected-correct .option-letter {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .option-btn.selected-wrong {
+      background-color: var(--error-light);
+      border-color: var(--error);
+      color: #991b1b;
+      font-weight: 600;
+      animation: shake 0.35s ease;
+    }
+    .option-btn.selected-wrong .option-letter {
+      background-color: var(--error);
+      color: white;
+    }
+
+    .option-btn.reveal-correct {
+      background-color: #ecfdf5;
+      border-color: #34d399;
+      color: #065f46;
+      font-weight: 600;
+    }
+    .option-btn.reveal-correct .option-letter {
+      background-color: #34d399;
+      color: white;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+
+    /* Explanation Box */
+    .explanation-box {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid var(--primary-light);
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .explanation-box.show {
+      display: block;
+    }
+
+    .exp-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .exp-content {
+      font-size: 0.92rem;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .exp-dica {
+      background: #fef3c7;
+      border-left: 3px solid #f59e0b;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: #92400e;
+      font-weight: 500;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Next Button */
+    .next-btn {
+      margin-top: 20px;
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+      transition: background 0.2s;
+    }
+
+    .next-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .next-btn.show {
+      display: flex;
+    }
+
+    /* Result Dashboard */
+    .result-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 28px 22px;
+      box-shadow: var(--shadow);
+      border: 1px solid #e2e8f0;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .result-score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 4px solid var(--primary-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+    }
+
+    .score-number {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .result-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .result-msg {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .result-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px 8px;
+      border-radius: 12px;
+    }
+
+    .stat-val {
+      font-size: 1.3rem;
+      font-weight: 800;
+    }
+    .stat-val.acertos { color: var(--success); }
+    .stat-val.erros { color: var(--error); }
+    .stat-val.total { color: var(--primary-light); }
+
+    .stat-desc {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* Action buttons in results */
+    .btn-action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-action {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-action.btn-whatsapp {
+      background: #25d366;
+      color: white;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    }
+    .btn-action.btn-whatsapp:hover {
+      background: #20ba59;
+    }
+
+    .btn-action.btn-retry-wrong {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-action.btn-restart {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Footer */
+    .footer-text {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Top Header with live stats -->
+  <header class="header">
+    <div class="header-top">
+      <div class="header-title">🧪 Quiz Análise Ambiental</div>
+      <div class="badge-user">Revisão Erica ✨</div>
+    </div>
+    <div class="header-sub">Prof.ª Dr.ª Juliana Martins &bull; UNINASSAU</div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressBar"></div>
+    </div>
+
+    <div class="stats-row">
+      <span id="counterText">Questão 1 de 30</span>
+      <span id="scoreText">🎯 Acertos: 0 | ❌ Erros: 0</span>
+    </div>
+  </header>
+
+  <!-- Filter chips by Aula -->
+  <div class="filters-scroll">
+    <button class="filter-chip active" onclick="setFilter('all')">🌟 Todas as Aulas (30)</button>
+    <button class="filter-chip" onclick="setFilter('Aula 01')">🌿 Aula 01: Ecologia</button>
+    <button class="filter-chip" onclick="setFilter('Aula 02')">☠️ Aula 02: Ecotoxicologia</button>
+    <button class="filter-chip" onclick="setFilter('Aula 03')">🏭 Aula 03: Poluição &amp; RSS</button>
+    <button class="filter-chip" onclick="setFilter('Aula 04')">🧬 Aula 04: Biomarcadores</button>
+    <button class="filter-chip" onclick="setFilter('Aula 05')">🔬 Aula 05: Equipamentos</button>
+    <button class="filter-chip" onclick="setFilter('Aula 06')">💧 Aula 06: Físico-Química Água</button>
+  </div>
+
+  <!-- Question View Card -->
+  <main class="question-card" id="quizCard">
+    <div class="card-meta">
+      <span class="tag-aula" id="cardAula">Aula 01</span>
+      <span class="tag-tema" id="cardTema">Tema</span>
+    </div>
+
+    <div class="question-text" id="questionText">Carregando pergunta...</div>
+
+    <div class="options-list" id="optionsList"></div>
+
+    <div class="explanation-box" id="explanationBox">
+      <div class="exp-title">💡 Explicação Técnica:</div>
+      <div class="exp-content" id="explanationText"></div>
+      <div class="exp-dica" id="dicaText"></div>
+    </div>
+
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">
+      Próxima Questão ➔
+    </button>
+  </main>
+
+  <!-- Final Result Dashboard -->
+  <section class="result-card" id="resultCard">
+    <div class="result-score-circle">
+      <div class="score-number" id="finalScorePercent">0%</div>
+      <div class="score-label">Aproveitamento</div>
+    </div>
+
+    <div class="result-title" id="resultTitle">Excelente! 🎉</div>
+    <div class="result-msg" id="resultMsg">Você concluiu o simulado de estudo.</div>
+
+    <div class="result-stats-grid">
+      <div class="stat-box">
+        <div class="stat-val acertos" id="finalAcertos">0</div>
+        <div class="stat-desc">Acertos</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val erros" id="finalErros">0</div>
+        <div class="stat-desc">Erros</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val total" id="finalTotal">0</div>
+        <div class="stat-desc">Questões</div>
+      </div>
+    </div>
+
+    <div class="btn-action-group">
+      <button class="btn-action btn-whatsapp" onclick="shareWhatsApp()">
+        📲 Compartilhar no WhatsApp
+      </button>
+      <button class="btn-action btn-retry-wrong" id="btnRetryWrong" onclick="retryWrongQuestions()">
+        🎯 Treinar Apenas Questões que Errei (<span id="wrongCountBadge">0</span>)
+      </button>
+      <button class="btn-action btn-restart" onclick="restartQuiz()">
+        🔄 Refazer Simulado Completo
+      </button>
+    </div>
+  </section>
+
+  <footer class="footer-text">
+    Material de Estudo Interativo &bull; Desenvolvido para Erica &bull; 2026
+  </footer>
+</div>
+
+<script>
+  const ALL_QUESTIONS = [{"id": 1, "aula": "Aula 01", "tema": "Ecologia Básica", "pergunta": "(PUC-SP) A cada conjunto de indivíduos da mesma espécie que vive e se reproduz numa mesma área geográfica denominamos de:", "opcoes": ["Biomassa", "Ecossistema", "População", "Nicho Ecológico", "Comunidade Biótica"], "correta": 2, "explicacao": "População é a definição estrita para um grupo de indivíduos da mesma espécie convivendo na mesma área. A Comunidade (biocenose) reúne populações de espécies diferentes.", "dica": "Mesma espécie + mesma área = População! Espécies diferentes juntas = Comunidade."}, {"id": 2, "aula": "Aula 01", "tema": "Ecologia Básica", "pergunta": "(Fuvest) Em um lago, estão presentes diversas espécies de peixes, plantas aquáticas, algas, protozoários, fungos e bactérias. O conjunto desses seres vivos constitui:", "opcoes": ["Uma cadeia alimentar", "Uma comunidade biológica", "Um ecossistema", "Uma população", "Uma sucessão ecológica"], "correta": 1, "explicacao": "O conjunto de seres vivos de diferentes espécies interagindo em um mesmo habitat forma a comunidade biológica (biocenose). Se a questão incluísse a água, luz e minerais (fatores abióticos), a resposta seria ecossistema.", "dica": "Apenas seres vivos de espécies diferentes = Comunidade. Seres vivos + fatores físicos/químicos = Ecossistema."}, {"id": 3, "aula": "Aula 01", "tema": "Habitat e Nicho", "pergunta": "(UFPE) Ao informar onde uma espécie pode ser encontrada na natureza e o papel funcional/comportamento que ela desempenha nesse ambiente, estamos informando, respectivamente:", "opcoes": ["Nicho ecológico e habitat", "Habitat e nicho ecológico", "Habitat e biótopo", "Nicho ecológico e ecossistema", "Biocenose e nicho ecológico"], "correta": 1, "explicacao": "O habitat é o 'endereço' físico onde o organismo vive. O nicho ecológico é a 'profissão' ou o papel da espécie (dieta, horário de atividade, reprodução, interações).", "dica": "Onde vive = Habitat. O que faz = Nicho Ecológico."}, {"id": 4, "aula": "Aula 01", "tema": "Dinâmica de Populações", "pergunta": "Sobre o fluxo de energia e o ciclo da matéria nos ecossistemas, é correto afirmar:", "opcoes": ["O fluxo de energia e o ciclo da matéria são ambos circulares e perpétuos.", "A energia flui de forma cíclica, enquanto a matéria é unidirecional e se esgota no topo da cadeia.", "O fluxo de energia é unidirecional e decresce a cada nível trófico; o ciclo da matéria é cíclico.", "A quantidade de energia disponível aumenta dos produtores em direção aos consumidores terciários.", "Os decompositores são os únicos organismos capazes de captar e reciclar a energia solar."], "correta": 2, "explicacao": "A energia entra como luz solar, é fixada pelos produtores e flui unidirecionalmente, diminuindo em cerca de 90% a cada nível (Lei dos 10%). Já a matéria é reciclada pelos decompositores de maneira cíclica.", "dica": "Energia = Unidirecional (diminui). Matéria = Cíclica (reciclada)."}, {"id": 5, "aula": "Aula 01", "tema": "Relações Ecológicas", "pergunta": "O fungo Penicillium produz e libera no meio a penicilina, substância que inibe a multiplicação de bactérias vizinhas. Essa relação ecológica interespecífica desarmônica é classificada como:", "opcoes": ["Parasitismo", "Predatismo", "Amensalismo (ou Antibiose)", "Esclavagismo", "Competição interespecífica"], "correta": 2, "explicacao": "No Amensalismo ou Antibiose (- / 0), uma espécie libera toxinas ou substâncias que inibem ou impedem o crescimento de outra sem obter benefício direto obrigatório. Outro exemplo clássico é a maré vermelha.", "dica": "Fungos que inibem bactérias e algas da maré vermelha = Amensalismo/Antibiose (- / 0)."}, {"id": 6, "aula": "Aula 02", "tema": "Ecotoxicologia", "pergunta": "Em ecotoxicologia, a diferença conceitual entre Toxicocinética e Toxicodinâmica reside no fato de que:", "opcoes": ["A toxicocinética estuda os efeitos moleculares no DNA, enquanto a toxicodinâmica investiga a absorção dérmica.", "A toxicocinética estuda o que o organismo faz com o xenobiótico (ADME); a toxicodinâmica estuda o que o xenobiótico causa na célula.", "Ambas são idênticas e tratam apenas da eliminação renal do tóxico.", "A toxicocinética avalia apenas ecossistemas marinhos, enquanto a toxicodinâmica avalia mamíferos terrestres.", "A toxicodinâmica precede a absorção gastrointestinal da substância química."], "correta": 1, "explicacao": "Toxicocinética envolve os processos de ADME: Absorção, Distribuição, Metabolismo/Biotransformação e Excreção. Toxicodinâmica investiga o mecanismo molecular e lesão biológica na célula-alvo.", "dica": "Cinética = movimento/destino (ADME). Dinâmica = ação e dano celular."}, {"id": 7, "aula": "Aula 02", "tema": "Ecotoxicologia", "pergunta": "Um peixe absorve diretamente pelas brânquias íons cádmio dissolvidos na água de um lago poluído, sem que haja ingestão alimentar de presas. Esse fenômeno específico é definido como:", "opcoes": ["Biomagnificação", "Amplificação trófica", "Bioconcentração", "Biodegradação acelerada", "Bioinativação hepática"], "correta": 2, "explicacao": "Bioconcentração é a absorção direta de poluentes a partir do meio abiótico (água/ar) através de brânquias ou epiderme, sem envolver a via alimentar.", "dica": "Direto da água/meio sem alimentação = Bioconcentração!"}, {"id": 8, "aula": "Aula 02", "tema": "Ecotoxicologia", "pergunta": "Qual processo descreve o aumento exponencial da concentração de um poluente lipofílico e persistente à medida que se sobe nos níveis tróficos de uma cadeia alimentar?", "opcoes": ["Bioconcentração", "Biomagnificação (Amplificação Trófica)", "Bioabsorção passiva", "Mineralização", "Biotransformação de Fase II"], "correta": 1, "explicacao": "A Biomagnificação ocorre ao longo da teia alimentar: os produtores absorvem pequenas doses, os consumidores primários concentram ao comer muitos produtores, e os predadores de topo acumulam doses altíssimas.", "dica": "Aumenta ao subir a cadeia alimentar = Biomagnificação!"}, {"id": 9, "aula": "Aula 02", "tema": "Poluentes Persistentes", "pergunta": "Quais são as características físico-químicas essenciais que tornam uma substância altamente suscetível à bioacumulação e biomagnificação?", "opcoes": ["Alta hidrossolubilidade, baixa estabilidade química e rápida metabolização renal.", "Alta lipofilicidade (log Kow elevado), alta persistência ambiental e baixa taxa de excreção biológica.", "Estrutura gasosa volátil, alta taxa de fotólise e facilidade de hidrólise pela água.", "Baixo peso molecular, insolubilidade em gorduras e degradação bacteriana imediata.", "Carga elétrica positiva muito elevada e tempo de meia-vida inferior a 24 horas."], "correta": 1, "explicacao": "Substâncias bioacumuladoras (como DDT, PCBs e metilmercúrio) são lipofílicas (acumulam em gorduras), estáveis/persistentes (resistem à quebra) e não são facilmente excretadas pelos organismos.", "dica": "Lipofílico (gordura) + Persistente (não degrada) + Baixa excreção = Bioacumulação!"}, {"id": 10, "aula": "Aula 03", "tema": "Casos Históricos", "pergunta": "Na clássica tragédia ambiental da Baía de Minamata (Japão), o desastre neurológico humano foi desencadeado porque o mercúrio inorgânico lançado pela indústria foi:", "opcoes": ["Evaporado para a estratosfera, gerando chuvas com ácido sulfúrico tóxico.", "Biotransformado por bactérias anaeróbias marinhas em metilmercúrio, sofrendo intensa biomagnificação nos peixes.", "Neutralizado pelas algas marinhas, transformando-se em sal insolúvel inerte.", "Consumido diretamente da água de torneira sem passar pela fauna marinha.", "Inalado pelos pescadores devido à queima de resíduos radioativos na praia."], "correta": 1, "explicacao": "Bactérias anaeróbicas nos sedimentos marinhos converteram o mercúrio inorgânico em metilmercúrio lipofílico. Os peixes bioacumularam e biomagnificaram a toxina, intoxicando a população que deles se alimentava.", "dica": "Minamata = Mercúrio biometilado em Metilmercúrio -> Biomagnificação em peixes!"}, {"id": 11, "aula": "Aula 03", "tema": "Casos Históricos", "pergunta": "No acidente radiológico com o Césio-137 em Goiânia (1987), a contaminação em massa ocorreu devido à violação de uma fonte abandonada de radioterapia contendo:", "opcoes": ["Gás radônio volátil liberado em um garimpo ilegal.", "Pó de cloreto de césio-137 com emissão de brilho azulado, gerenciado posteriormente pela CNEN.", "Pastilhas de urânio enriquecido retiradas de um reator nuclear clandestino.", "Lixo hospitalar infectante do Grupo A descartado sem incineração prévia.", "Água pesada contendo trítio radioativo derramada no sistema de esgoto."], "correta": 1, "explicacao": "O cabeçote de teleterapia continha cloreto de césio-137 em pó. A curiosidade gerada pelo brilho azul levou à contaminação e mortes. O controle dos rejeitos coube à Comissão Nacional de Energia Nuclear (CNEN).", "dica": "Goiânia = Césio-137 em pó azul de clínica abandonada + Rejeitos sob controle da CNEN."}, {"id": 12, "aula": "Aula 03", "tema": "Gerenciamento de RSS", "pergunta": "De acordo com a RDC ANVISA nº 222/2018 e a Resolução CONAMA nº 358/2005, em qual grupo de RSS devem ser descartadas culturas microbianas, bolsas de sangue e tecidos biológicos?", "opcoes": ["Grupo A (Infectantes / Biológicos) em saco plástico branco leitoso.", "Grupo B (Químicos) em bombonas plásticas identificadas.", "Grupo C (Radioativos) em recipientes blindados de chumbo.", "Grupo D (Comuns) em sacos pretos domiciliares.", "Grupo E (Pérfuro-cortantes) em caixas amarelas Descarpack."], "correta": 0, "explicacao": "O Grupo A abrange resíduos com presença de agentes biológicos patogênicos (sangue, culturas, secreções, tecidos). O acondicionamento obrigatório é em saco branco leitoso com o símbolo de risco biológico.", "dica": "Sangue, culturas e tecidos = Grupo A (Saco Branco Leitoso)."}, {"id": 13, "aula": "Aula 03", "tema": "Gerenciamento de RSS", "pergunta": "Agulhas hipodérmicas, lâminas de bisturi e ampolas de vidro quebradas pertencem a qual grupo de RSS e qual a regra obrigatória de preenchimento do seu recipiente coletor?", "opcoes": ["Grupo B; preenchimento livre até o transbordamento da caixa.", "Grupo E; embaladas em caixas rígidas resistentes à punctura, respeitando o limite de 2/3 da capacidade.", "Grupo A; colocadas soltas em sacos plásticos brancos leitosos reforçados.", "Grupo E; preenchimento permitido até 100% da caixa desde que as agulhas sejam reencapadas.", "Grupo D; descartadas em lixeiras comuns com pedal."], "correta": 1, "explicacao": "Pérfuro-cortantes são do Grupo E. Devem ser descartados em caixas rígidas (Descarpack) preenchidas até a linha tracejada limite (2/3 da capacidade). É terminantemente proibido reencapar agulhas!", "dica": "Agulhas e bisturis = Grupo E (Descarpack) + Limite de 2/3 + NUNCA reencapar!"}, {"id": 14, "aula": "Aula 04", "tema": "PNRS", "pergunta": "A Política Nacional de Resíduos Sólidos (Lei nº 12.305/2010) estabelece uma ordem jurídica obrigatória de prioridade no gerenciamento. Qual é a primeira e mais prioritária ação?", "opcoes": ["Reciclagem industrial imediata.", "Não geração de resíduos.", "Incineração com recuperação energética.", "Disposição final ambientalmente adequada em aterros sanitários.", "Tratamento químico com neutralização ácida."], "correta": 1, "explicacao": "A ordem legal é: Não geração > Redução > Reutilização > Reciclagem > Tratamento > Disposição final dos rejeitos. A primeira prioridade é sempre evitar gerar o resíduo.", "dica": "PNRS: 1º Não Geração -> 2º Redução -> 3º Reutilização -> 4º Reciclagem."}, {"id": 15, "aula": "Aula 04", "tema": "Biomarcadores", "pergunta": "Um trabalhador exposto ocupacionalmente a pesticidas organofosforados realiza um exame que detecta inibição significativa da enzima acetilcolinesterase eritrocitária. Essa alteração bioquímica subclínica classifica-se como:", "opcoes": ["Biomarcador de suscetibilidade.", "Biomarcador de exposição.", "Biomarcador de efeito.", "Biomarcador genotípico terminal.", "Falha técnica do oxímetro."], "correta": 2, "explicacao": "A inibição da acetilcolinesterase é um Biomarcador de Efeito: revela uma alteração bioquímica/funcional precoce gerada pela interação do tóxico com o organismo antes de sintomas clínicos graves.", "dica": "Inibição de enzimas e quebras de DNA = Biomarcador de EFEITO!"}, {"id": 16, "aula": "Aula 04", "tema": "Biomarcadores", "pergunta": "A determinação quantitativa dos níveis de chumbo no sangue total (chumbemia) ou de mercúrio na urina de um indivíduo constitui um exemplo de:", "opcoes": ["Biomarcador de exposição.", "Biomarcador de efeito precoce.", "Biomarcador de suscetibilidade inata.", "Biomarcador de morbidade crônica.", "Transdução piezoelétrica celular."], "correta": 0, "explicacao": "Biomarcadores de Exposição quantificam a própria substância química exógena, seu metabólito ou produtos de sua ligação direta em tecidos corporais.", "dica": "Dosar o próprio metal ou metabólito no sangue/urina = Biomarcador de EXPOSIÇÃO!"}, {"id": 17, "aula": "Aula 04", "tema": "Biossensores", "pergunta": "Em um biossensor ambiental, quais são as duas partes operacionais indispensáveis que atuam em conjunto?", "opcoes": ["Um solvente orgânico e um forno de atomização por chama.", "Um biorreceptor (enzima, anticorpo, DNA) e um transdutor físico-químico.", "Um filtro de membrana de 0,45 µm e uma bomba de vácuo.", "Uma fonte de plasma de argônio e um espectrômetro de massas.", "Um balão volumétrico e um indicador de amido."], "correta": 1, "explicacao": "Um biossensor integra um Biorreceptor (molécula biológica que reconhece especificamente o alvo) acoplado a um Transdutor (dispositivo que converte o evento bioquímico em sinal óptico, elétrico ou digital).", "dica": "Biossensor = Biorreceptor (biológico) + Transdutor (físico-químico)."}, {"id": 18, "aula": "Aula 05", "tema": "Fundamentos Analíticos", "pergunta": "No jargão da química ambiental e laboratorial, o que define com precisão o termo 'Analito'?", "opcoes": ["O equipamento automatizado utilizado para realizar a leitura espectrofotométrica.", "O conjunto de todas as substâncias presentes na amostra, exceto a água.", "A espécie química, elemento ou micro-organismo de interesse específico que se pretende identificar ou dosar.", "O solvente utilizado exclusivamente na etapa de extração líquido-líquido.", "A curva de calibração obtida com padrões analíticos sintéticos."], "correta": 2, "explicacao": "O analito é o componente de interesse específico (ex: íon chumbo, atrazina, bactéria). A matriz é tudo o mais que compõe a amostra.", "dica": "Analito = O que você quer medir! Matriz = Todo o resto da amostra!"}, {"id": 19, "aula": "Aula 05", "tema": "Amostragem", "pergunta": "Considerando o fluxo analítico completo (desde a coleta no campo até a emissão do laudo laboratorial), qual etapa é historicamente reconhecida como a maior fonte de erros e incertezas?", "opcoes": ["A leitura óptica pelo software do computador.", "A etapa de amostragem e preparo da amostra.", "A calibração do detector instrumental com padrões analíticos.", "A pesagem do frasco na balança analítica calibrada.", "A impressão física do laudo para a vigilância sanitária."], "correta": 1, "explicacao": "A etapa de amostragem e conservação responde por mais de 60% a 70% dos erros globais. Se a coleta não for representativa ou a amostra degradar no trajeto, o melhor equipamento gerará dados incorretos.", "dica": "Maior fonte de erro = Amostragem e preparo da amostra!"}, {"id": 20, "aula": "Aula 05", "tema": "Preparo de Amostra", "pergunta": "Para prevenir a degradação fotolítica de compostos orgânicos sensíveis à luz solar, como os Hidrocarbonetos Policíclicos Aromáticos (PAHs), qual cuidado deve ser tomado na coleta de água?", "opcoes": ["Coletar em sacos plásticos transparentes e ferver imediatamente.", "Utilizar frascos de vidro escuro (âmbar) e manter sob refrigeração a 4 °C.", "Adicionar hipoclorito de sódio para esterilizar a amostra na coleta.", "Manter sob luz ultravioleta direta para estabilizar as ligações químicas.", "Congelar a amostra em nitrogênio líquido sem tampar o frasco."], "correta": 1, "explicacao": "Frascos de vidro âmbar bloqueiam a radiação UV e luz visível que degradam PAHs e outros orgânicos fotossensíveis. A refrigeração a 4 °C desacelera a degradação bioquímica.", "dica": "Sensíveis à luz (PAHs) = Frasco âmbar (escuro) + Refrigeração a 4 °C!"}, {"id": 21, "aula": "Aula 05", "tema": "Equipamentos Analíticos", "pergunta": "Para determinar com alta sensibilidade e especificidade a concentração de chumbo (metal pesado) em amostras de água de uma creche, qual técnica instrumental é a mais indicada?", "opcoes": ["Cromatografia a Gás com detector FID (GC-FID).", "Espectrometria de Absorção Atômica (AAS) ou ICP-MS.", "Espectrofotometria UV-Vis direta sem adição de reagentes.", "Turbidimetria eletrométrica com sensor de membrana.", "Titulação ácido-base simples com fenolftaleína."], "correta": 1, "explicacao": "AAS (Absorção Atômica) e ICP-MS são as tecnologias padrão-ouro para análise quantitativa de metais pesados em matrizes ambientais.", "dica": "Metais pesados (chumbo, cádmio, mercúrio) = Absorção Atômica (AAS) ou ICP-MS!"}, {"id": 22, "aula": "Aula 05", "tema": "Microbiologia Ambiental", "pergunta": "Qual técnica microbiológica é considerada o padrão oficial para controle de potabilidade da água tratada, permitindo concentrar micro-organismos em membrana filtrante estéril de 0,45 µm e quantificar colônias?", "opcoes": ["Método do Número Mais Provável (NMP).", "Método de Filtração por Membrana.", "Coloração de Gram em esfregaço direto.", "Espectrometria de massas MALDI-TOF em efluente bruto.", "Semeadura por estrias em caldo glicosado anaeróbio."], "correta": 1, "explicacao": "A Filtração por Membrana com poros de 0,45 µm permite filtrar 100 mL de água e incubar a membrana em meio cromogênico para contagem direta de UFC de coliformes e E. coli.", "dica": "Padrão de água potável com contagem de UFC = Filtração por Membrana (0,45 µm)!"}, {"id": 23, "aula": "Aula 06", "tema": "Legislação de Água", "pergunta": "Qual é a norma federal atualmente em vigor no Brasil que estabelece os padrões e procedimentos de potabilidade da água destinada ao consumo humano?", "opcoes": ["Portaria MS nº 2.914/2011.", "Resolução CONAMA nº 357/2005.", "Portaria GM/MS nº 888, de 4 de maio de 2021.", "Lei das Águas nº 9.433/1997.", "RDC ANVISA nº 222/2018."], "correta": 2, "explicacao": "A Portaria GM/MS nº 888/2021 é a norma vigente no Brasil para potabilidade da água de consumo humano, tendo revogado expressamente a Portaria 2.914/2011.", "dica": "CUIDADO COM PEGADINHA: Portaria 2.914/2011 foi revogada! A norma vigente é a PORTARIA GM/MS 888/2021!"}, {"id": 24, "aula": "Aula 06", "tema": "Potabilidade da Água", "pergunta": "De acordo com a Portaria GM/MS nº 888/2021, qual é o padrão microbiológico compulsório exigido para a água tratada na saída da estação e no sistema de distribuição?", "opcoes": ["Permite-se até 10 UFC de Escherichia coli em 100 mL de amostra.", "Ausência total de Escherichia coli e de Coliformes Totais em 100 mL de amostra.", "Tolera-se a presença de coliformes totais desde que o cloro esteja acima de 5,0 mg/L.", "Exige-se apenas a contagem de bactérias heterotróficas, dispensando pesquisa de E. coli.", "A análise microbiológica é opcional para cidades com menos de 50 mil habitantes."], "correta": 1, "explicacao": "O padrão de potabilidade é categórico: AUSÊNCIA de Escherichia coli e AUSÊNCIA de Coliformes Totais em alíquotas de 100 mL de água tratada.", "dica": "Microbiologia de água potável = ZERO E. coli e ZERO Coliformes em 100 mL!"}, {"id": 25, "aula": "Aula 06", "tema": "Casos Históricos", "pergunta": "Na trágica ocorrência em Caruaru-PE (1996), pacientes submetidos à hemodiálise vieram a óbito por intoxicação hepática massiva causada por qual agente contaminante na água?", "opcoes": ["Chumbo inorgânico lixiviado de tubulações antigas de ferro.", "Microcistinas (cianotoxinas hepatotóxicas) produzidas por florações de cianobactérias.", "Vírus da Hepatite B introduzido por falta de cloração básica.", "DDT presente em defensivos agrícolas carreados pelas chuvas.", "Césio-137 transportado clandestinamente no reservatório de Tabocas."], "correta": 1, "explicacao": "A Tragédia de Caruaru foi provocada por microcistinas (toxinas de cianobactérias do açude de Tabocas) que entraram na circulação dos pacientes renais devido à ausência de osmose reversa, levando à hepatite tóxica aguda.", "dica": "Caruaru / Hemodiálise = Microcistinas (cianotoxinas de cianobactérias)!"}, {"id": 26, "aula": "Aula 06", "tema": "Tratamento de Água (ETA)", "pergunta": "Em uma Estação de Tratamento de Água (ETA), qual é a primeira etapa físico-química na qual se adiciona sulfato de alumínio sob agitação rápida para desestabilizar partículas coloidais?", "opcoes": ["Floculação lenta.", "Coagulação.", "Decantação gravitacional.", "Filtração em carvão ativado.", "Fluoretação preventiva."], "correta": 1, "explicacao": "A Coagulação é a adição do coagulante (sulfato de alumínio) com mistura rápida para anular cargas das impurezas. A Floculação ocorre em seguida com agitação lenta para formar flocos pesados.", "dica": "Mistura rápida com sulfato de alumínio = COAGULAÇÃO! Agitação lenta para formar flocos = FLOCULAÇÃO!"}, {"id": 27, "aula": "Aula 06", "tema": "Parâmetros Físico-Químicos", "pergunta": "O método volumétrico iodométrico de Winkler é mundialmente empregado em análises ambientais para quantificar qual parâmetro crítico da água?", "opcoes": ["Turbidez relativa.", "Oxigênio Dissolvido (OD).", "Dureza total em carbonatos.", "Cloro Residual Livre.", "Alcalinidade de bicarbonatos."], "correta": 1, "explicacao": "O Método de Winkler baseia-se na fixação do oxigênio dissolvido com sulfato manganoso e iodeto-azida, liberação de iodo livre por acidificação e titulação com tiossulfato de sódio.", "dica": "Método de Winkler = Oxigênio Dissolvido (OD)!"}, {"id": 28, "aula": "Aula 06", "tema": "Parâmetros Físico-Químicos", "pergunta": "O que níveis excessivamente baixos de Oxigênio Dissolvido (OD) em um rio urbano normalmente indicam para o analista ambiental?", "opcoes": ["Água de pureza extrema com alta produção fotossintética por macrófitas.", "Intenso despejo de esgoto orgânico biodegradável, consumido rapidamente por bactérias aeróbias decompositoras.", "Baixíssima temperatura e concentração nula de qualquer bactéria viável.", "Excesso de sais inertes de cloreto de sódio que repelem o oxigênio.", "Infiltração de água destilada oriunda de chuvas ácidas."], "correta": 1, "explicacao": "Quando matéria orgânica (esgoto) é despejada na água, bactérias heterotróficas se proliferam e consomem vorazmente o oxigênio dissolvido para degradar essa matéria, levando peixes e fauna à asfixia.", "dica": "OD muito baixo = Muito esgoto orgânico sendo decomposto por bactérias aeróbias!"}, {"id": 29, "aula": "Aula 06", "tema": "DBO vs. DQO", "pergunta": "Ao comparar a Demanda Bioquímica de Oxigênio (DBO) com a Demanda Química de Oxigênio (DQO), é correto afirmar que:", "opcoes": ["A DBO é sempre muito maior que a DQO em qualquer efluente industrial.", "A DQO é sempre maior ou igual à DBO (DQO >= DBO), pois a DQO oxida quimicamente matéria biodegradável e não biodegradável.", "A DBO mede a oxidação por dicromato em 2 horas; a DQO dura 5 dias com bactérias vivas.", "Ambas medem exclusivamente os pesticidas inorgânicos na água potável.", "Se a razão DBO/DQO for inferior a 0,1, o efluente deve ser tratado exclusivamente por lodo ativado biológico."], "correta": 1, "explicacao": "A DQO mede toda a matéria oxidável quimicamente (biodegradável + recalcitrante + inorgânicos), enquanto a DBO mede apenas o que microrganismos decompõem. Logo, DQO >= DBO.", "dica": "DQO >= DBO SEMPRE! DQO = oxidação química total (dicromato, 2h). DBO = biológica (5 dias)."}, {"id": 30, "aula": "Aula 06", "tema": "Volumetria de Cloretos", "pergunta": "Na titulação argentométrica de cloretos pelo Método de Mohr com nitrato de prata (AgNO3) e indicador cromato de potássio (K2CrO4), qual sinal visual determina o ponto final da titulação?", "opcoes": ["Viragem da solução de incolor para azul-escuro brilhante.", "Descoloração completa com formação de bolhas de gás hidrogênio.", "Formação repentina de um precipitado castanho-avermelhado de cromato de prata (Ag2CrO4).", "Surgimento de cristais verdes de sulfato manganoso no fundo do erlenmeyer.", "Efervescência ácida com alteração do pH para valores inferiores a 2,0."], "correta": 2, "explicacao": "O íon prata reage primeiro com o cloreto formando o AgCl (branco leitoso). Ao esgotar o cloreto, o excesso de prata reage com o cromato formando o cromato de prata (Ag2CrO4), um sólido castanho-avermelhado (vermelho-tijolo).", "dica": "Método de Mohr (cloretos) = Precipitado castanho-avermelhado de Cromato de Prata (Ag2CrO4)!"}];
+
+  let activeList = [...ALL_QUESTIONS];
+  let currentIndex = 0;
+  let scoreCorrect = 0;
+  let scoreWrong = 0;
+  let wrongQuestions = [];
+  let answered = false;
+  let currentFilter = 'all';
+
+  // Audio synthesizer via Web Audio API (Offline & 100% reliable)
+  const audioCtx = (window.AudioContext || window.webkitAudioContext) ? new (window.AudioContext || window.webkitAudioContext)() : null;
+  function playSound(type) {
+    if (!audioCtx) return;
+    try {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      if (type === 'correct') {
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else {
+        osc.frequency.setValueAtTime(260, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      }
+    } catch(e) {}
+  }
+
+  // Vibration for Mobile
+  function triggerHaptic(type) {
+    if ('vibrate' in navigator) {
+      if (type === 'correct') navigator.vibrate(50);
+      else navigator.vibrate([80, 50, 80]);
+    }
+  }
+
+  function setFilter(aula) {
+    currentFilter = aula;
+    document.querySelectorAll('.filter-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${aula}'`));
+    });
+
+    if (aula === 'all') {
+      activeList = [...ALL_QUESTIONS];
+    } else {
+      activeList = ALL_QUESTIONS.filter(q => q.aula === aula);
+    }
+    restartQuiz();
+  }
+
+  function restartQuiz() {
+    currentIndex = 0;
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    wrongQuestions = [];
+    answered = false;
+
+    // Shuffle active questions for fresh practice
+    activeList.sort(() => Math.random() - 0.5);
+
+    document.getElementById('quizCard').style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    if (currentIndex >= activeList.length) {
+      showResults();
+      return;
+    }
+
+    answered = false;
+    const q = activeList[currentIndex];
+
+    // Meta & Texts
+    document.getElementById('cardAula').innerText = q.aula;
+    document.getElementById('cardTema').innerText = q.tema;
+    document.getElementById('questionText').innerText = q.pergunta;
+
+    // Header stats
+    const progressPercent = ((currentIndex) / activeList.length) * 100;
+    document.getElementById('progressBar').style.width = progressPercent + '%';
+    document.getElementById('counterText').innerText = `Questão ${currentIndex + 1} de ${activeList.length}`;
+    document.getElementById('scoreText').innerText = `🎯 Acertos: ${scoreCorrect} | ❌ Erros: ${scoreWrong}`;
+
+    // Options
+    const list = document.getElementById('optionsList');
+    list.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D', 'E'];
+
+    q.opcoes.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `<div class="option-letter">${letters[idx]}</div><div class="option-text">${opt}</div>`;
+      btn.onclick = () => selectOption(idx);
+      list.appendChild(btn);
+    });
+
+    // Reset explanation & next button
+    document.getElementById('explanationBox').classList.remove('show');
+    document.getElementById('nextBtn').classList.remove('show');
+  }
+
+  function selectOption(selectedIdx) {
+    if (answered) return;
+    answered = true;
+
+    const q = activeList[currentIndex];
+    const isCorrect = (selectedIdx === q.correta);
+    const buttons = document.querySelectorAll('.option-btn');
+
+    if (isCorrect) {
+      scoreCorrect++;
+      buttons[selectedIdx].classList.add('selected-correct');
+      playSound('correct');
+      triggerHaptic('correct');
+    } else {
+      scoreWrong++;
+      wrongQuestions.push(q);
+      buttons[selectedIdx].classList.add('selected-wrong');
+      buttons[q.correta].classList.add('reveal-correct');
+      playSound('wrong');
+      triggerHaptic('wrong');
+    }
+
+    // Disable all options
+    buttons.forEach(btn => btn.disabled = true);
+
+    // Show Explanation & Golden Tip
+    document.getElementById('explanationText').innerText = q.explicacao;
+    document.getElementById('dicaText').innerHTML = '<strong>📌 Dica de Prova:</strong> ' + q.dica;
+    document.getElementById('explanationBox').classList.add('show');
+
+    // Update stats text immediately
+    document.getElementById('scoreText').innerText = `🎯 Acertos: ${scoreCorrect} | ❌ Erros: ${scoreWrong}`;
+
+    // Show Next Button
+    const nextBtn = document.getElementById('nextBtn');
+    if (currentIndex + 1 >= activeList.length) {
+      nextBtn.innerHTML = 'Ver Resultado Final 🏆';
+    } else {
+      nextBtn.innerHTML = 'Próxima Questão ➔';
+    }
+    nextBtn.classList.add('show');
+
+    // Auto-scroll slightly to show explanation on small screens
+    setTimeout(() => {
+      nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 200);
+  }
+
+  function nextQuestion() {
+    currentIndex++;
+    renderQuestion();
+  }
+
+  function showResults() {
+    document.getElementById('quizCard').style.display = 'none';
+    const resultCard = document.getElementById('resultCard');
+    resultCard.style.display = 'block';
+
+    const total = activeList.length;
+    const percent = Math.round((scoreCorrect / total) * 100);
+
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('finalScorePercent').innerText = percent + '%';
+    document.getElementById('finalAcertos').innerText = scoreCorrect;
+    document.getElementById('finalErros').innerText = scoreWrong;
+    document.getElementById('finalTotal').innerText = total;
+
+    const titleElem = document.getElementById('resultTitle');
+    const msgElem = document.getElementById('resultMsg');
+
+    if (percent >= 90) {
+      titleElem.innerText = 'Sensacional, Erica! 🏆';
+      msgElem.innerText = 'Você demonstrou domínio completo dos conteúdos de Análise Ambiental!';
+    } else if (percent >= 70) {
+      titleElem.innerText = 'Muito Bem! 👏';
+      msgElem.innerText = 'Ótimo desempenho! Vale a pena revisar as questões que você errou para gabaritar a prova.';
+    } else {
+      titleElem.innerText = 'Bora Revisar! 📖';
+      msgElem.innerText = 'O simulado apontou alguns pontos para reforçar. Use o botão abaixo para treinar apenas seus erros!';
+    }
+
+    // Button to retry wrong questions
+    const btnRetryWrong = document.getElementById('btnRetryWrong');
+    const wrongCountBadge = document.getElementById('wrongCountBadge');
+    if (wrongQuestions.length > 0) {
+      btnRetryWrong.style.display = 'flex';
+      wrongCountBadge.innerText = wrongQuestions.length;
+    } else {
+      btnRetryWrong.style.display = 'none';
+    }
+  }
+
+  function retryWrongQuestions() {
+    if (wrongQuestions.length === 0) return;
+    activeList = [...wrongQuestions];
+    currentIndex = 0;
+    scoreCorrect = 0;
+    scoreWrong = 0;
+    wrongQuestions = [];
+    answered = false;
+
+    document.getElementById('quizCard').style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+    renderQuestion();
+  }
+
+  function shareWhatsApp() {
+    const total = activeList.length;
+    const percent = Math.round((scoreCorrect / total) * 100);
+    const text = `Oi! Acabei de fazer o Simulado de Análise Ambiental da Revisão da Erica 🧪📚%0A%0A🎯 *Meu Resultado:* ${percent}% de aproveitamento (${scoreCorrect}/${total} acertos)%0A%0ATreinei todos os tópicos das Aulas 01 a 06! ✨`;
+    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  }
+
+  // Initialize on load
+  window.addEventListener('DOMContentLoaded', () => {
+    restartQuiz();
+  });
+</script>
+</body>
+</html>
